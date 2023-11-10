@@ -1,5 +1,4 @@
-﻿using Discord.WebSocket;
-using LeagueOfLegendsServerStatistics.Application.Discord.Bot;
+﻿using LeagueOfLegendsServerStatistics.Application.Discord.Bot;
 using LeagueOfLegendsServerStatistics.Application.Discord.Commands;
 using LeagueOfLegendsServerStatistics.Application.Discord.Logging;
 using LeagueOfLegendsServerStatistics.Application.Setup;

@@ -1,5 +1,7 @@
 ﻿using LeagueOfLegendsServerStatistics.Application.Discord.Bot;
 using LeagueOfLegendsServerStatistics.Application.Discord.Logging;
+using LOLServerStatistics.Server.Application.Mappers;
+using LOLServerStatistics.Server.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +25,12 @@ namespace LeagueOfLegendsServerStatistics.Application.Setup
 
             //  registry all riot api services
             services.AddRiotApiServices();
+
+            services.AddTransient<IUserRepository, UsersRepository>();
+            services.AddTransient<IChampionsRepository, ChampionsRepository>();
+
+            services.AddTransient<ISummonerMappers, SummonerMappers>();
+            services.AddTransient<IChampionsMappers, ChampionsMappers>();
 
             return services;
         }

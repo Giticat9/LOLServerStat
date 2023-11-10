@@ -2,6 +2,9 @@
 using Discord.WebSocket;
 using LeagueOfLegendsServerStatistics.Application.Discord.Bot;
 using LeagueOfLegendsServerStatistics.Application.Riot.Api;
+using LOLServerStatistics.Server.Application.Mappers;
+using LOLServerStatistics.Server.Application.Riot.Models;
+using LOLServerStatistics.Server.Database;
 using Newtonsoft.Json;
 
 namespace LeagueOfLegendsServerStatistics.Application.Discord.Commands.Registry
@@ -10,12 +13,19 @@ namespace LeagueOfLegendsServerStatistics.Application.Discord.Commands.Registry
     {
         private readonly IDiscordBot _discordBot;
         private readonly ISummonerV4 _summonerV4;
+        private readonly IUserRepository _userRepository;
+        private readonly ISummonerMappers _summonerMappers;
         private readonly string _commandName = "registry";
 
-        public RegistryCommand(IDiscordBot discordBot, ISummonerV4 summonerV4)
+        public RegistryCommand(IDiscordBot discordBot, 
+            ISummonerV4 summonerV4, 
+            IUserRepository userRepository,
+            ISummonerMappers summonerMappers)
         {
             _discordBot = discordBot;
             _summonerV4 = summonerV4;
+            _userRepository = userRepository;
+            _summonerMappers = summonerMappers;
         }
 
         public string CommandName
@@ -66,8 +76,28 @@ namespace LeagueOfLegendsServerStatistics.Application.Discord.Commands.Registry
                 }
 
                 var summoner = await _summonerV4.GetSummonerByName(summonerName);
+                var discordGuildId = command?.GuildId ?? 0;
+                var discordUserId = command?.User.Id ?? 0;
 
-                await command.RespondAsync(JsonConvert.SerializeObject(summoner, Formatting.Indented), ephemeral: true);
+                var isUserExists = await _userRepository.CheckExistsUser(discordGuildId, discordUserId);
+                if (isUserExists)
+                {
+                    await command.RespondAsync($"Пользователь с никнеймом {summonerName} уже добавлен");
+                    return;
+                }
+
+                var summonerInfo = await _summonerV4.GetSummonerInfoById(summoner?.Id ?? "");
+
+                var summonerSQLTableModelList = new List<SummonerSQLTableModel>(summonerInfo.Count);
+
+                foreach(var info in summonerInfo)
+                {
+                    var mapped = _summonerMappers.MapSummonerToSummonerSQLTableModel(summoner, info);
+                    summonerSQLTableModelList.Add(mapped);
+                }
+
+                await _userRepository.AddOrUpdateUser(discordGuildId, discordUserId, summoner?.Id ?? "", summonerSQLTableModelList);
+                await command.RespondAsync($"Пользователь с никнеймом {summonerName} добавлен!", ephemeral: true);
             }
             catch(Exception ex)
             {

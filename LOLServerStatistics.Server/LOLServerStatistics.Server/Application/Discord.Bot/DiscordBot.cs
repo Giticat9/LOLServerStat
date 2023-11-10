@@ -12,7 +12,10 @@ namespace LeagueOfLegendsServerStatistics.Application.Discord.Bot
         public DiscordBot(IConfiguration configuration)
         {
             _configuration = configuration;
-            _discordSocketClient = new DiscordSocketClient();
+            _discordSocketClient = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences
+            });
         }
 
         public DiscordSocketClient SocketClient

@@ -1,6 +1,6 @@
 ﻿namespace LeagueOfLegendsServerStatistics.Application.Riot.Models
 {
-    public class SummonerModal
+    public class SummonerModel
     {
         public string Id { get; set; } = "";
         public string AccountId { get; set; } = "";
